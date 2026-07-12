@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guciku — Catatan Keuangan Harian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="jar-drip" aria-hidden="true"></div>
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="brand">
+      <svg class="brand-jar" width="34" height="40" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2H22V7.5C22 7.5 27 10 27 17V33C27 36.3137 24.3137 39 21 39H13C9.68629 39 7 36.3137 7 33V17C7 10 12 7.5 12 7.5V2Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M12 2H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M7.5 22H26.5" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1 4.5" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1>Guciku</h1>
+        <p class="tagline">Simpan cerita uangmu, sedikit demi sedikit</p>
+      </div>
+    </div>
+    <button class="btn-add" id="openFormBtn">
+      <span class="plus">+</span> Catat
+    </button>
+  </header>
+
+  <section class="summary" aria-label="Ringkasan keuangan">
+    <div class="jar-card">
+      <div class="jar-visual" id="jarVisual" aria-hidden="true">
+        <svg viewBox="0 0 120 150" width="100%" height="100%">
+          <defs>
+            <clipPath id="jarClip">
+              <path d="M43 6H77V24C77 24 100 32 100 58V128C100 138.493 91.4934 147 81 147H39C28.5066 147 20 138.493 20 128V58C20 32 43 24 43 24V6Z"/>
+            </clipPath>
+          </defs>
+          <path id="jarOutline" d="M43 6H77V24C77 24 100 32 100 58V128C100 138.493 91.4934 147 81 147H39C28.5066 147 20 138.493 20 128V58C20 32 43 24 43 24V6Z" fill="var(--cream-dark)" stroke="var(--brown)" stroke-width="2.5"/>
+          <g clip-path="url(#jarClip)">
+            <rect id="jarFill" x="0" y="150" width="120" height="150" fill="var(--sage)"/>
+          </g>
+          <path d="M43 6H77V24C77 24 100 32 100 58V128C100 138.493 91.4934 147 81 147H39C28.5066 147 20 138.493 20 128V58C20 32 43 24 43 24V6Z" fill="none" stroke="var(--brown)" stroke-width="2.5"/>
+          <path d="M43 6H77" stroke="var(--brown)" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="jar-info">
+        <span class="jar-label">Saldo Guciku</span>
+        <span class="jar-amount" id="saldoAmount">Rp 0</span>
+      </div>
+    </div>
+
+    <div class="stat-card in">
+      <span class="stat-label">Pemasukan</span>
+      <span class="stat-amount" id="totalMasuk">Rp 0</span>
+    </div>
+    <div class="stat-card out">
+      <span class="stat-label">Pengeluaran</span>
+      <span class="stat-amount" id="totalKeluar">Rp 0</span>
+    </div>
+  </section>
+
+  <section class="history">
+    <div class="history-head">
+      <h2>Riwayat</h2>
+      <div class="filter-row" id="filterRow">
+        <button class="chip active" data-filter="semua">Semua</button>
+        <button class="chip" data-filter="masuk">Masuk</button>
+        <button class="chip" data-filter="keluar">Keluar</button>
+      </div>
+    </div>
+    <div id="historyList" class="history-list"></div>
+    <div id="emptyState" class="empty-state">
+      <svg width="56" height="66" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2H22V7.5C22 7.5 27 10 27 17V33C27 36.3137 24.3137 39 21 39H13C9.68629 39 7 36.3137 7 33V17C7 10 12 7.5 12 7.5V2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M12 2H22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <p>Guciku masih kosong.<br>Yuk catat pemasukan atau pengeluaran pertamamu.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="sheet-overlay" id="sheetOverlay">
+  <div class="sheet" role="dialog" aria-label="Tambah transaksi">
+    <div class="sheet-handle"></div>
+    <div class="type-toggle" id="typeToggle">
+      <button type="button" class="type-btn active" data-type="keluar">Pengeluaran</button>
+      <button type="button" class="type-btn" data-type="masuk">Pemasukan</button>
+    </div>
+
+    <form id="txForm">
+      <label class="field">
+        <span>Jumlah</span>
+        <div class="amount-input">
+          <span class="prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="amountInput" placeholder="0" required>
+        </div>
+      </label>
+
+      <label class="field">
+        <div class="field-label-row">
+          <span>Kategori</span>
+          <button type="button" class="manage-link" id="manageCatBtn">Kelola</button>
+        </div>
+        <div class="category-grid" id="categoryGrid"></div>
+        <div class="add-category-form" id="addCategoryForm" hidden>
+          <input type="text" id="newCatEmoji" class="emoji-input" maxlength="2" placeholder="🏷️">
+          <input type="text" id="newCatName" class="name-input" placeholder="Nama kategori baru">
+          <button type="button" class="btn-mini-secondary" id="cancelAddCat">Batal</button>
+          <button type="button" class="btn-mini-primary" id="confirmAddCat">Tambah</button>
+        </div>
+      </label>
+
+      <label class="field">
+        <span>Catatan <em>(opsional)</em></span>
+        <input type="text" id="noteInput" placeholder="Misalnya: makan siang di warung">
+      </label>
+
+      <label class="field">
+        <span>Tanggal</span>
+        <input type="date" id="dateInput" required>
+      </label>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn-secondary" id="cancelBtn">Batal</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Simpan Pengeluaran</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
