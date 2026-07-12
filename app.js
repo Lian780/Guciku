@@ -1,20 +1,32 @@
 // ===== Guciku — Tahap 1 =====
 // Catat pemasukan & pengeluaran harian, kategori, ringkasan.
 
-const CATEGORIES = [
-  { id: "makan", label: "Makan", emoji: "🍚" },
-  { id: "transport", label: "Transport", emoji: "🛵" },
-  { id: "belanja", label: "Belanja", emoji: "🛍️" },
-  { id: "tagihan", label: "Tagihan", emoji: "🧾" },
-  { id: "lainnya", label: "Lainnya", emoji: "📦" },
-];
+const DEFAULT_CATEGORIES = {
+  keluar: [
+    { id: "makan", label: "Makan", emoji: "🍚" },
+    { id: "transport", label: "Transport", emoji: "🛵" },
+    { id: "belanja", label: "Belanja", emoji: "🛍️" },
+    { id: "tagihan", label: "Tagihan", emoji: "🧾" },
+    { id: "lainnya", label: "Lainnya", emoji: "📦" },
+  ],
+  masuk: [
+    { id: "gaji", label: "Gaji", emoji: "💼" },
+    { id: "bonus", label: "Bonus", emoji: "🎁" },
+    { id: "hadiah", label: "Hadiah", emoji: "🎀" },
+    { id: "investasi", label: "Investasi", emoji: "📈" },
+    { id: "lainnya-masuk", label: "Lainnya", emoji: "📦" },
+  ],
+};
 
 const STORAGE_KEY = "guciku:transactions";
+const CATEGORIES_KEY = "guciku:categories";
 
 let transactions = loadTransactions();
+let categoriesByType = loadCategories();
 let currentType = "keluar";
-let currentCategory = CATEGORIES[0].id;
+let currentCategory = categoriesByType.keluar[0].id;
 let currentFilter = "semua";
+let manageMode = false;
 
 // ---------- Storage ----------
 function loadTransactions() {
@@ -32,6 +44,30 @@ function saveTransactions() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
   } catch (e) {
     console.error("Gagal menyimpan data Guciku:", e);
+  }
+}
+
+function loadCategories() {
+  try {
+    const raw = localStorage.getItem(CATEGORIES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.keluar && parsed.masuk) return parsed;
+    }
+  } catch (e) {
+    console.error("Gagal membaca kategori Guciku:", e);
+  }
+  return {
+    keluar: DEFAULT_CATEGORIES.keluar.map((c) => ({ ...c })),
+    masuk: DEFAULT_CATEGORIES.masuk.map((c) => ({ ...c })),
+  };
+}
+
+function saveCategories() {
+  try {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categoriesByType));
+  } catch (e) {
+    console.error("Gagal menyimpan kategori Guciku:", e);
   }
 }
 
@@ -58,8 +94,11 @@ function formatDayLabel(dateStr) {
   return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
 }
 
-function categoryInfo(id) {
-  return CATEGORIES.find((c) => c.id === id) || CATEGORIES[CATEGORIES.length - 1];
+function categoryInfo(type, id) {
+  const list = categoriesByType[type] || [];
+  const found = list.find((c) => c.id === id);
+  if (found) return found;
+  return { id, label: "Kategori dihapus", emoji: "🏷️" };
 }
 
 // ---------- Computation ----------
@@ -136,7 +175,7 @@ function renderHistory() {
     groupEl.appendChild(labelEl);
 
     for (const t of group.items) {
-      const cat = categoryInfo(t.category);
+      const cat = categoryInfo(t.type, t.category);
       const row = document.createElement("div");
       row.className = "tx-row";
       row.dataset.type = t.type;
@@ -175,18 +214,66 @@ function renderAll() {
 function renderCategoryGrid() {
   const grid = document.getElementById("categoryGrid");
   grid.innerHTML = "";
-  CATEGORIES.forEach((cat) => {
+  grid.classList.toggle("editing", manageMode);
+
+  const list = categoriesByType[currentType];
+
+  list.forEach((cat) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "cat-btn" + (cat.id === currentCategory ? " active" : "");
+    btn.className = "cat-btn" + (cat.id === currentCategory && !manageMode ? " active" : "");
     btn.dataset.cat = cat.id;
-    btn.innerHTML = `<span class="cat-emoji">${cat.emoji}</span><span>${cat.label}</span>`;
+    btn.innerHTML = `
+      <span class="cat-emoji">${cat.emoji}</span><span>${escapeHtml(cat.label)}</span>
+      <span class="cat-remove" title="Hapus kategori">✕</span>
+    `;
     btn.addEventListener("click", () => {
-      currentCategory = cat.id;
-      renderCategoryGrid();
+      if (manageMode) {
+        removeCategory(currentType, cat.id);
+      } else {
+        currentCategory = cat.id;
+        renderCategoryGrid();
+      }
     });
     grid.appendChild(btn);
   });
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.className = "cat-btn cat-add";
+  addBtn.innerHTML = `<span class="cat-emoji">＋</span><span>Tambah</span>`;
+  addBtn.addEventListener("click", () => {
+    document.getElementById("addCategoryForm").hidden = false;
+    document.getElementById("newCatName").focus();
+  });
+  grid.appendChild(addBtn);
+
+  document.getElementById("manageCatBtn").textContent = manageMode ? "Selesai" : "Kelola";
+}
+
+function addCategory(type, label, emoji) {
+  const cleanLabel = label.trim();
+  if (!cleanLabel) return;
+  const id = cleanLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "kategori-" + Date.now();
+  const finalId = categoriesByType[type].some((c) => c.id === id) ? id + "-" + Date.now() : id;
+  categoriesByType[type].push({ id: finalId, label: cleanLabel, emoji: emoji.trim() || "🏷️" });
+  saveCategories();
+  currentCategory = finalId;
+  renderCategoryGrid();
+}
+
+function removeCategory(type, id) {
+  if (categoriesByType[type].length <= 1) {
+    alert("Minimal harus ada satu kategori.");
+    return;
+  }
+  const cat = categoriesByType[type].find((c) => c.id === id);
+  if (!confirm(`Hapus kategori "${cat ? cat.label : id}"? Transaksi lama yang memakainya tetap tersimpan.`)) return;
+
+  categoriesByType[type] = categoriesByType[type].filter((c) => c.id !== id);
+  saveCategories();
+  if (currentCategory === id) currentCategory = categoriesByType[type][0].id;
+  renderCategoryGrid();
 }
 
 // ---------- Actions ----------
@@ -222,7 +309,9 @@ function openSheet() {
   amountInput.value = "";
   document.getElementById("noteInput").value = "";
   currentType = "keluar";
-  currentCategory = CATEGORIES[0].id;
+  currentCategory = categoriesByType.keluar[0].id;
+  manageMode = false;
+  document.getElementById("addCategoryForm").hidden = true;
   updateTypeToggleUI();
   renderCategoryGrid();
   overlay.classList.add("open");
@@ -250,7 +339,40 @@ document.getElementById("typeToggle").addEventListener("click", (e) => {
   const btn = e.target.closest(".type-btn");
   if (!btn) return;
   currentType = btn.dataset.type;
+  currentCategory = categoriesByType[currentType][0].id;
+  manageMode = false;
+  document.getElementById("addCategoryForm").hidden = true;
   updateTypeToggleUI();
+  renderCategoryGrid();
+});
+
+// ---------- Kelola kategori (tambah/hapus) ----------
+document.getElementById("manageCatBtn").addEventListener("click", () => {
+  manageMode = !manageMode;
+  document.getElementById("addCategoryForm").hidden = true;
+  renderCategoryGrid();
+});
+
+document.getElementById("confirmAddCat").addEventListener("click", () => {
+  const name = document.getElementById("newCatName").value;
+  const emoji = document.getElementById("newCatEmoji").value;
+  addCategory(currentType, name, emoji);
+  document.getElementById("newCatName").value = "";
+  document.getElementById("newCatEmoji").value = "";
+  document.getElementById("addCategoryForm").hidden = true;
+});
+
+document.getElementById("cancelAddCat").addEventListener("click", () => {
+  document.getElementById("newCatName").value = "";
+  document.getElementById("newCatEmoji").value = "";
+  document.getElementById("addCategoryForm").hidden = true;
+});
+
+document.getElementById("newCatName").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    document.getElementById("confirmAddCat").click();
+  }
 });
 
 // Format input jumlah dengan pemisah ribuan saat mengetik
