@@ -22,9 +22,11 @@ const STORAGE_KEY = "guciku:transactions";
 const CATEGORIES_KEY = "guciku:categories";
 const BUDGETS_KEY = "guciku:budgets";
 const HIDE_AMOUNTS_KEY = "guciku:hideAmounts";
+const TRASH_KEY = "guciku:categoryTrash";
 
 let transactions = loadTransactions();
 let categoriesByType = loadCategories();
+let categoryTrash = loadTrash();
 let budgets = loadBudgets();
 let hideAmounts = localStorage.getItem(HIDE_AMOUNTS_KEY) === "1";
 let currentType = "keluar";
@@ -72,6 +74,33 @@ function saveCategories() {
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categoriesByType));
   } catch (e) {
     console.error("Gagal menyimpan kategori Guciku:", e);
+  }
+}
+
+function loadTrash() {
+  try {
+    const raw = localStorage.getItem(TRASH_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error("Gagal membaca kategori terhapus Guciku:", e);
+  }
+  // Migrasi sekali jalan: kategori bawaan yang sudah kehapus sebelum fitur ini ada,
+  // supaya tetap muncul di daftar "bisa dipulihkan".
+  const seeded = { keluar: [], masuk: [] };
+  ["keluar", "masuk"].forEach((type) => {
+    const existingIds = new Set(categoriesByType[type].map((c) => c.id));
+    DEFAULT_CATEGORIES[type].forEach((def) => {
+      if (!existingIds.has(def.id)) seeded[type].push({ ...def });
+    });
+  });
+  return seeded;
+}
+
+function saveTrash() {
+  try {
+    localStorage.setItem(TRASH_KEY, JSON.stringify(categoryTrash));
+  } catch (e) {
+    console.error("Gagal menyimpan kategori terhapus Guciku:", e);
   }
 }
 
@@ -362,11 +391,6 @@ function addCategory(type, label, emoji) {
   renderCategoryGrid();
 }
 
-function getMissingDefaults(type) {
-  const existingIds = new Set(categoriesByType[type].map((c) => c.id));
-  return DEFAULT_CATEGORIES[type].filter((d) => !existingIds.has(d.id));
-}
-
 function renderRestoreList() {
   const box = document.getElementById("restoreList");
   if (!manageMode) {
@@ -374,15 +398,18 @@ function renderRestoreList() {
     box.innerHTML = "";
     return;
   }
-  const missing = getMissingDefaults(currentType);
-  if (missing.length === 0) {
+  // Jangan tampilkan yang sudah ada lagi di grid (bisa kejadian kalau dibuat ulang manual)
+  const existingIds = new Set(categoriesByType[currentType].map((c) => c.id));
+  const trashed = categoryTrash[currentType].filter((c) => !existingIds.has(c.id));
+
+  if (trashed.length === 0) {
     box.hidden = true;
     box.innerHTML = "";
     return;
   }
   box.hidden = false;
-  box.innerHTML = `<p class="restore-label">Kategori bawaan yang belum dipakai:</p>`;
-  missing.forEach((cat) => {
+  box.innerHTML = `<p class="restore-label">Kategori yang pernah dihapus:</p>`;
+  trashed.forEach((cat) => {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "restore-chip";
@@ -390,6 +417,8 @@ function renderRestoreList() {
     chip.addEventListener("click", () => {
       categoriesByType[currentType].push({ ...cat });
       saveCategories();
+      categoryTrash[currentType] = categoryTrash[currentType].filter((c) => c.id !== cat.id);
+      saveTrash();
       renderCategoryGrid();
       renderRestoreList();
     });
@@ -403,10 +432,16 @@ function removeCategory(type, id) {
     return;
   }
   const cat = categoriesByType[type].find((c) => c.id === id);
-  if (!confirm(`Hapus kategori "${cat ? cat.label : id}"? Transaksi lama yang memakainya tetap tersimpan.`)) return;
+  if (!confirm(`Hapus kategori "${cat ? cat.label : id}"? Transaksi lama yang memakainya tetap tersimpan, dan kategorinya bisa dipulihkan lagi lewat "Kelola".`)) return;
 
   categoriesByType[type] = categoriesByType[type].filter((c) => c.id !== id);
   saveCategories();
+
+  if (cat && !categoryTrash[type].some((c) => c.id === cat.id)) {
+    categoryTrash[type].push({ ...cat });
+    saveTrash();
+  }
+
   if (budgets[id] !== undefined) {
     delete budgets[id];
     saveBudgets();
