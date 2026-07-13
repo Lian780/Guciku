@@ -350,12 +350,12 @@ function renderCategoryGrid() {
   document.getElementById("manageCatBtn").textContent = manageMode ? "Selesai" : "Kelola";
 }
 
-function addCategory(type, label, emoji) {
+function addCategory(type, label) {
   const cleanLabel = label.trim();
   if (!cleanLabel) return;
   const id = cleanLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "kategori-" + Date.now();
   const finalId = categoriesByType[type].some((c) => c.id === id) ? id + "-" + Date.now() : id;
-  categoriesByType[type].push({ id: finalId, label: cleanLabel, emoji: emoji.trim() || "🏷️" });
+  categoriesByType[type].push({ id: finalId, label: cleanLabel, emoji: "🏷️" });
   saveCategories();
   currentCategory = finalId;
   renderCategoryGrid();
@@ -459,16 +459,13 @@ document.getElementById("manageCatBtn").addEventListener("click", () => {
 
 document.getElementById("confirmAddCat").addEventListener("click", () => {
   const name = document.getElementById("newCatName").value;
-  const emoji = document.getElementById("newCatEmoji").value;
-  addCategory(currentType, name, emoji);
+  addCategory(currentType, name);
   document.getElementById("newCatName").value = "";
-  document.getElementById("newCatEmoji").value = "";
   document.getElementById("addCategoryForm").hidden = true;
 });
 
 document.getElementById("cancelAddCat").addEventListener("click", () => {
   document.getElementById("newCatName").value = "";
-  document.getElementById("newCatEmoji").value = "";
   document.getElementById("addCategoryForm").hidden = true;
 });
 
