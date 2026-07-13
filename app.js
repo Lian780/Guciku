@@ -362,6 +362,21 @@ function addCategory(type, label, emoji) {
   renderCategoryGrid();
 }
 
+function restoreDefaultCategories(type) {
+  const existingIds = new Set(categoriesByType[type].map((c) => c.id));
+  let added = 0;
+  DEFAULT_CATEGORIES[type].forEach((defCat) => {
+    if (!existingIds.has(defCat.id)) {
+      categoriesByType[type].push({ ...defCat });
+      added++;
+    }
+  });
+  if (added > 0) {
+    saveCategories();
+    renderCategoryGrid();
+  }
+}
+
 function removeCategory(type, id) {
   if (categoriesByType[type].length <= 1) {
     alert("Minimal harus ada satu kategori.");
@@ -452,6 +467,10 @@ document.getElementById("typeToggle").addEventListener("click", (e) => {
 });
 
 // ---------- Kelola kategori (tambah/hapus) ----------
+document.getElementById("restoreCatBtn").addEventListener("click", () => {
+  restoreDefaultCategories(currentType);
+});
+
 document.getElementById("manageCatBtn").addEventListener("click", () => {
   manageMode = !manageMode;
   document.getElementById("addCategoryForm").hidden = true;
