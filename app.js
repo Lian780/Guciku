@@ -31,7 +31,6 @@ let currentType = "keluar";
 let currentCategory = categoriesByType.keluar[0].id;
 let currentFilter = "semua";
 let manageMode = false;
-let restoreMode = false;
 
 // ---------- Storage ----------
 function loadTransactions() {
@@ -370,18 +369,19 @@ function getMissingDefaults(type) {
 
 function renderRestoreList() {
   const box = document.getElementById("restoreList");
-  if (!restoreMode) {
+  if (!manageMode) {
+    box.hidden = true;
+    box.innerHTML = "";
+    return;
+  }
+  const missing = getMissingDefaults(currentType);
+  if (missing.length === 0) {
     box.hidden = true;
     box.innerHTML = "";
     return;
   }
   box.hidden = false;
-  const missing = getMissingDefaults(currentType);
-  if (missing.length === 0) {
-    box.innerHTML = `<p class="restore-empty-note">Semua kategori bawaan sudah ada di sini.</p>`;
-    return;
-  }
-  box.innerHTML = "";
+  box.innerHTML = `<p class="restore-label">Kategori bawaan yang belum dipakai:</p>`;
   missing.forEach((cat) => {
     const chip = document.createElement("button");
     chip.type = "button";
@@ -413,6 +413,7 @@ function removeCategory(type, id) {
   }
   if (currentCategory === id) currentCategory = categoriesByType[type][0].id;
   renderCategoryGrid();
+  renderRestoreList();
   renderBudgets();
 }
 
@@ -451,8 +452,6 @@ function openSheet() {
   currentType = "keluar";
   currentCategory = categoriesByType.keluar[0].id;
   manageMode = false;
-  restoreMode = false;
-  document.getElementById("restoreCatBtn").textContent = "Pulihkan bawaan";
   document.getElementById("addCategoryForm").hidden = true;
   updateTypeToggleUI();
   renderCategoryGrid();
@@ -484,28 +483,16 @@ document.getElementById("typeToggle").addEventListener("click", (e) => {
   currentType = btn.dataset.type;
   currentCategory = categoriesByType[currentType][0].id;
   manageMode = false;
-  restoreMode = false;
-  document.getElementById("restoreCatBtn").textContent = "Pulihkan bawaan";
   document.getElementById("addCategoryForm").hidden = true;
   updateTypeToggleUI();
   renderCategoryGrid();
   renderRestoreList();
 });
 
-// ---------- Kelola kategori (tambah/hapus) ----------
-document.getElementById("restoreCatBtn").addEventListener("click", () => {
-  restoreMode = !restoreMode;
-  manageMode = false;
-  document.getElementById("addCategoryForm").hidden = true;
-  document.getElementById("restoreCatBtn").textContent = restoreMode ? "Selesai" : "Pulihkan bawaan";
-  renderCategoryGrid();
-  renderRestoreList();
-});
-
+// ---------- Kelola kategori (tambah, hapus, pulihkan) ----------
 document.getElementById("manageCatBtn").addEventListener("click", () => {
   manageMode = !manageMode;
-  restoreMode = false;
-  document.getElementById("restoreCatBtn").textContent = "Pulihkan bawaan";
+  document.getElementById("manageCatBtn").textContent = manageMode ? "Selesai" : "Kelola";
   document.getElementById("addCategoryForm").hidden = true;
   renderCategoryGrid();
   renderRestoreList();
