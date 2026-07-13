@@ -1,188 +1,680 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guciku — Catatan Keuangan Harian</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
+:root {
+  --cream: #F7F1E4;
+  --cream-dark: #EDE2CC;
+  --paper: #FFFCF5;
+  --terracotta: #C1694A;
+  --terracotta-dark: #A2523A;
+  --terracotta-soft: #F1DACB;
+  --brown: #7A5A3F;
+  --brown-deep: #4A3722;
+  --sage: #93A87E;
+  --sage-dark: #6E8459;
+  --sage-soft: #E1E7D6;
+  --line: #E2D5BC;
+  --warn: #D9A441;
+  --warn-soft: #F5E7C7;
+  --shadow: 0 8px 24px -12px rgba(74, 55, 34, 0.25);
+  font-family: "Plus Jakarta Sans", -apple-system, sans-serif;
+}
 
-<div class="jar-drip" aria-hidden="true"></div>
+* { box-sizing: border-box; }
 
-<div class="app">
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--brown-deep);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
 
-  <header class="app-header">
-    <div class="brand">
-      <svg class="brand-jar" width="34" height="40" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2H22V7.5C22 7.5 27 10 27 17V33C27 36.3137 24.3137 39 21 39H13C9.68629 39 7 36.3137 7 33V17C7 10 12 7.5 12 7.5V2Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-        <path d="M12 2H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M7.5 22H26.5" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1 4.5" stroke-linecap="round"/>
-      </svg>
-      <div>
-        <h1>Guciku</h1>
-        <p class="tagline">Simpan cerita uangmu, sedikit demi sedikit</p>
-      </div>
-    </div>
-    <button class="btn-add" id="openFormBtn">
-      <span class="plus">+</span> Catat
-    </button>
-  </header>
+h1, h2 { font-family: "Fraunces", serif; margin: 0; }
 
-  <section class="summary" aria-label="Ringkasan keuangan">
-    <div class="summary-controls">
-      <button type="button" class="visibility-toggle" id="toggleAmountsBtn" title="Sembunyikan angka">
-        <svg id="eyeIcon" width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-        </svg>
-        <span id="toggleAmountsLabel">Sembunyikan angka</span>
-      </button>
-    </div>
-    <div class="jar-card">
-      <div class="jar-visual" id="jarVisual" aria-hidden="true">
-        <svg viewBox="0 0 120 150" width="100%" height="100%">
-          <defs>
-            <clipPath id="jarClip">
-              <path d="M43 6H77V24C77 24 100 32 100 58V128C100 138.493 91.4934 147 81 147H39C28.5066 147 20 138.493 20 128V58C20 32 43 24 43 24V6Z"/>
-            </clipPath>
-          </defs>
-          <path id="jarOutline" d="M43 6H77V24C77 24 100 32 100 58V128C100 138.493 91.4934 147 81 147H39C28.5066 147 20 138.493 20 128V58C20 32 43 24 43 24V6Z" fill="var(--cream-dark)" stroke="var(--brown)" stroke-width="2.5"/>
-          <g clip-path="url(#jarClip)">
-            <rect id="jarFill" x="0" y="150" width="120" height="150" fill="var(--sage)"/>
-          </g>
-          <path d="M43 6H77V24C77 24 100 32 100 58V128C100 138.493 91.4934 147 81 147H39C28.5066 147 20 138.493 20 128V58C20 32 43 24 43 24V6Z" fill="none" stroke="var(--brown)" stroke-width="2.5"/>
-          <path d="M43 6H77" stroke="var(--brown)" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="jar-info">
-        <span class="jar-label">Saldo Guciku</span>
-        <span class="jar-amount" id="saldoAmount">Rp 0</span>
-        <p class="jar-note" id="jarNote" hidden></p>
-      </div>
-    </div>
+.jar-drip {
+  position: fixed;
+  top: -120px; right: -80px;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, var(--terracotta-soft) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
 
-    <div class="stat-card in">
-      <span class="stat-label">Pemasukan</span>
-      <span class="stat-amount" id="totalMasuk">Rp 0</span>
-    </div>
-    <div class="stat-card out">
-      <span class="stat-label">Pengeluaran</span>
-      <span class="stat-amount" id="totalKeluar">Rp 0</span>
-    </div>
-  </section>
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 28px 20px 100px;
+}
 
-  <section class="budget-section" aria-label="Anggaran bulan ini">
-    <div class="history-head">
-      <h2>Anggaran Bulan Ini</h2>
-      <button type="button" class="manage-link" id="openBudgetBtn">Atur</button>
-    </div>
-    <div id="budgetList" class="budget-list"></div>
-    <div id="budgetEmpty" class="empty-state budget-empty">
-      <p>Belum ada anggaran diatur.<br>Klik "Atur" untuk kasih batas per kategori pengeluaran.</p>
-    </div>
-  </section>
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-jar { color: var(--terracotta); flex-shrink: 0; }
+.brand h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--brown-deep);
+  letter-spacing: -0.01em;
+}
+.tagline {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--brown);
+  opacity: 0.85;
+}
 
-  <section class="history">
-    <div class="history-head">
-      <h2>Riwayat</h2>
-      <div class="filter-row" id="filterRow">
-        <button class="chip active" data-filter="semua">Semua</button>
-        <button class="chip" data-filter="masuk">Masuk</button>
-        <button class="chip" data-filter="keluar">Keluar</button>
-      </div>
-    </div>
-    <div id="historyList" class="history-list"></div>
-    <div id="emptyState" class="empty-state">
-      <svg width="56" height="66" viewBox="0 0 34 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2H22V7.5C22 7.5 27 10 27 17V33C27 36.3137 24.3137 39 21 39H13C9.68629 39 7 36.3137 7 33V17C7 10 12 7.5 12 7.5V2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-        <path d="M12 2H22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-      <p>Guciku masih kosong.<br>Yuk catat pemasukan atau pengeluaran pertamamu.</p>
-    </div>
-  </section>
+.btn-add {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--terracotta);
+  color: var(--paper);
+  border: none;
+  border-radius: 999px;
+  padding: 11px 18px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+.btn-add:hover { background: var(--terracotta-dark); transform: translateY(-1px); }
+.btn-add:active { transform: translateY(0); }
+.plus { font-size: 17px; line-height: 1; }
 
-</div>
+/* Summary */
+.summary {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+.summary-controls {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+}
+.visibility-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brown);
+  opacity: 0.75;
+  cursor: pointer;
+}
+.visibility-toggle:hover { opacity: 1; color: var(--terracotta-dark); }
+.jar-card {
+  grid-row: 2 / 4;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow);
+}
+.jar-visual { width: 92px; height: 115px; }
+#jarFill { transition: y 0.6s cubic-bezier(.22,1,.36,1), height 0.6s cubic-bezier(.22,1,.36,1); }
+.jar-info { text-align: center; }
+.jar-label {
+  display: block;
+  font-size: 12px;
+  color: var(--brown);
+  margin-bottom: 3px;
+}
+.jar-amount {
+  display: block;
+  font-family: "Fraunces", serif;
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--brown-deep);
+}
+.jar-note {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--warn);
+  max-width: 150px;
+}
+.jar-note[hidden] { display: none; }
 
-<div class="sheet-overlay" id="sheetOverlay">
-  <div class="sheet" role="dialog" aria-label="Tambah transaksi">
-    <div class="sheet-handle"></div>
-    <div class="type-toggle" id="typeToggle">
-      <button type="button" class="type-btn active" data-type="keluar">Pengeluaran</button>
-      <button type="button" class="type-btn" data-type="masuk">Pemasukan</button>
-    </div>
+.stat-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--shadow);
+}
+.stat-label { font-size: 12px; color: var(--brown); }
+.stat-amount { font-family: "Fraunces", serif; font-size: 18px; font-weight: 600; }
+.stat-card.in .stat-amount { color: var(--sage-dark); }
+.stat-card.out .stat-amount { color: var(--terracotta-dark); }
 
-    <form id="txForm">
-      <label class="field">
-        <span>Jumlah</span>
-        <div class="amount-input">
-          <span class="prefix">Rp</span>
-          <input type="text" inputmode="numeric" id="amountInput" placeholder="0" required>
-        </div>
-      </label>
+/* Budget */
+.budget-section { margin-bottom: 30px; }
 
-      <label class="field">
-        <div class="field-label-row">
-          <span>Kategori</span>
-          <button type="button" class="manage-link" id="manageCatBtn">Kelola</button>
-        </div>
-        <div class="category-grid" id="categoryGrid"></div>
-        <div class="restore-list" id="restoreList" hidden></div>
-        <div class="add-category-form" id="addCategoryForm" hidden>
-          <div class="emoji-picker" id="emojiPicker">
-            <button type="button" class="emoji-pick-btn active" data-emoji="🏷️">🏷️</button>
-            <button type="button" class="emoji-pick-btn" data-emoji="🛒">🛒</button>
-            <button type="button" class="emoji-pick-btn" data-emoji="🎯">🎯</button>
-            <button type="button" class="emoji-pick-btn" data-emoji="🌿">🌿</button>
-            <button type="button" class="emoji-pick-btn" data-emoji="⭐">⭐</button>
-            <button type="button" class="emoji-pick-btn" data-emoji="💡">💡</button>
-            <button type="button" class="emoji-pick-btn" data-emoji="🎨">🎨</button>
-            <button type="button" class="emoji-pick-btn" data-emoji="📌">📌</button>
-          </div>
-          <div class="add-category-row">
-            <input type="text" id="newCatName" class="name-input" placeholder="Nama kategori baru">
-            <button type="button" class="btn-mini-secondary" id="cancelAddCat">Batal</button>
-            <button type="button" class="btn-mini-primary" id="confirmAddCat">Tambah</button>
-          </div>
-        </div>
-      </label>
+.budget-list { display: flex; flex-direction: column; gap: 10px; }
 
-      <label class="field">
-        <span>Catatan <em>(opsional)</em></span>
-        <input type="text" id="noteInput" placeholder="Misalnya: makan siang di warung">
-      </label>
+.budget-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 13px 15px;
+}
+.budget-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.budget-card-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--brown-deep);
+}
+.budget-card-name .cat-emoji { font-size: 16px; }
+.budget-card-figures {
+  font-size: 12.5px;
+  color: var(--brown);
+  white-space: nowrap;
+}
+.budget-card-figures strong { color: var(--brown-deep); }
 
-      <label class="field">
-        <span>Tanggal</span>
-        <input type="date" id="dateInput" required>
-      </label>
+.budget-bar-track {
+  height: 8px;
+  background: var(--cream-dark);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--sage);
+  transition: width 0.4s cubic-bezier(.22,1,.36,1), background 0.3s ease;
+}
+.budget-card.state-warn .budget-bar-fill { background: var(--warn); }
+.budget-card.state-over .budget-bar-fill { background: var(--terracotta); }
+.budget-card.state-warn .budget-card-figures strong { color: var(--warn); }
+.budget-card.state-over .budget-card-figures strong { color: var(--terracotta-dark); }
 
-      <div class="sheet-actions">
-        <button type="button" class="btn-secondary" id="cancelBtn">Batal</button>
-        <button type="submit" class="btn-primary" id="submitBtn">Simpan Pengeluaran</button>
-      </div>
-    </form>
-  </div>
-</div>
+.budget-note {
+  margin: 7px 0 0;
+  font-size: 11.5px;
+  color: var(--brown);
+  opacity: 0.75;
+}
+.budget-card.state-warn .budget-note { color: var(--warn); opacity: 1; }
+.budget-card.state-over .budget-note { color: var(--terracotta-dark); opacity: 1; }
 
-<div class="sheet-overlay" id="budgetOverlay">
-  <div class="sheet" role="dialog" aria-label="Atur anggaran">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title-row">
-      <h2>Atur Anggaran Bulanan</h2>
-      <p class="sheet-subtitle">Kosongkan kalau kategori tidak mau dibatasi.</p>
-    </div>
-    <div id="budgetForm" class="budget-form"></div>
-    <div class="sheet-actions">
-      <button type="button" class="btn-secondary" id="cancelBudgetBtn">Batal</button>
-      <button type="button" class="btn-primary" id="saveBudgetBtn">Simpan Anggaran</button>
-    </div>
-  </div>
-</div>
+.budget-empty { display: none; padding: 26px 20px; }
+.budget-empty p { margin: 0; font-size: 13px; line-height: 1.6; }
 
-<script src="app.js"></script>
-</body>
-</html>
+.sheet-title-row { margin-bottom: 16px; }
+.sheet-title-row h2 { font-size: 18px; color: var(--brown-deep); margin-bottom: 4px; }
+.sheet-subtitle { margin: 0; font-size: 12.5px; color: var(--brown); opacity: 0.8; }
+
+.budget-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; max-height: 48vh; overflow-y: auto; }
+.budget-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.budget-row-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 108px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brown-deep);
+}
+.budget-row .amount-input { flex: 1; padding: 0 10px; }
+.budget-row .amount-input input { font-size: 14px !important; padding: 9px 6px !important; }
+
+/* History */
+.history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.history-head h2 { font-size: 18px; color: var(--brown-deep); }
+
+.filter-row { display: flex; gap: 6px; }
+.chip {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--brown);
+  border-radius: 999px;
+  padding: 6px 13px;
+  font-size: 12.5px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chip.active { background: var(--brown-deep); color: var(--paper); border-color: var(--brown-deep); }
+
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+
+.day-group { display: flex; flex-direction: column; gap: 8px; }
+.day-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--brown);
+  opacity: 0.7;
+  margin: 10px 0 2px;
+}
+.day-label:first-child { margin-top: 0; }
+
+.tx-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px 14px;
+  position: relative;
+}
+.tx-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  background: var(--sage-soft);
+}
+.tx-row[data-type="keluar"] .tx-icon { background: var(--terracotta-soft); }
+
+.tx-main { flex: 1; min-width: 0; }
+.tx-category { font-weight: 600; font-size: 14.5px; color: var(--brown-deep); }
+.tx-note {
+  font-size: 12.5px;
+  color: var(--brown);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tx-amount { font-weight: 700; font-size: 14.5px; white-space: nowrap; }
+.tx-row[data-type="masuk"] .tx-amount { color: var(--sage-dark); }
+.tx-row[data-type="keluar"] .tx-amount { color: var(--terracotta-dark); }
+
+.tx-delete {
+  background: none;
+  border: none;
+  color: var(--brown);
+  opacity: 0.4;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 2px;
+  line-height: 1;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.tx-delete:hover { opacity: 1; color: var(--terracotta-dark); }
+
+.empty-state {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 50px 20px;
+  color: var(--brown);
+  opacity: 0.75;
+}
+.empty-state svg { color: var(--terracotta); opacity: 0.6; }
+.empty-state p { margin: 0; font-size: 14px; line-height: 1.6; }
+
+/* Sheet / Form */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(74, 55, 34, 0.35);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 10;
+}
+.sheet-overlay.open { opacity: 1; pointer-events: auto; }
+
+.sheet {
+  background: var(--cream);
+  width: 100%;
+  max-width: 560px;
+  border-radius: 26px 26px 0 0;
+  padding: 10px 22px 26px;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(.22,1,.36,1);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.sheet-overlay.open .sheet { transform: translateY(0); }
+
+.sheet-handle {
+  width: 40px; height: 4px;
+  background: var(--line);
+  border-radius: 999px;
+  margin: 10px auto 18px;
+}
+
+.type-toggle {
+  display: flex;
+  background: var(--cream-dark);
+  border-radius: 13px;
+  padding: 4px;
+  margin-bottom: 20px;
+  gap: 4px;
+}
+.type-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--brown);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.type-btn.active[data-type="keluar"] { background: var(--terracotta); color: var(--paper); }
+.type-btn.active[data-type="masuk"] { background: var(--sage-dark); color: var(--paper); }
+
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+.field > span {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brown-deep);
+  margin-bottom: 7px;
+}
+.field em { font-weight: 400; opacity: 0.6; font-style: normal; }
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+.field-label-row span { margin-bottom: 0; }
+.manage-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--terracotta-dark);
+  cursor: pointer;
+}
+.manage-link:hover { text-decoration: underline; }
+
+.add-category-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.add-category-form[hidden] { display: none; }
+
+.emoji-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.emoji-pick-btn {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.emoji-pick-btn.active {
+  border-color: var(--terracotta);
+  background: var(--terracotta-soft);
+}
+
+.add-category-row {
+  display: flex;
+  gap: 6px;
+}
+.emoji-input {
+  width: 46px;
+  flex-shrink: 0;
+  text-align: center;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 8px 4px;
+  font-size: 16px;
+  font-family: inherit;
+}
+.name-input {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--brown-deep);
+}
+.emoji-input:focus, .name-input:focus { outline: none; border-color: var(--terracotta); }
+
+.btn-mini-primary, .btn-mini-secondary {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-mini-primary { background: var(--terracotta); color: var(--paper); }
+.btn-mini-secondary { background: var(--cream-dark); color: var(--brown-deep); }
+
+.field input[type="text"],
+.field input[type="date"] {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--brown-deep);
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--terracotta);
+}
+
+.amount-input {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 0 14px;
+}
+.amount-input .prefix { color: var(--brown); font-weight: 600; font-size: 15px; }
+.amount-input input {
+  border: none !important;
+  background: transparent !important;
+  padding: 12px 8px !important;
+  font-size: 17px !important;
+  font-weight: 700;
+}
+.amount-input input:focus { outline: none; }
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.restore-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.restore-list[hidden] { display: none; }
+.restore-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px dashed var(--line);
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 8px 11px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--brown);
+  cursor: pointer;
+}
+.restore-chip:hover { border-color: var(--sage-dark); background: var(--sage-soft); color: var(--sage-dark); }
+.restore-chip .plus-badge { font-weight: 700; color: var(--sage-dark); }
+.restore-label {
+  width: 100%;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--brown);
+  opacity: 0.65;
+  margin: 4px 0 0;
+}
+.cat-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  border-radius: 13px;
+  padding: 10px 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--brown);
+  transition: all 0.15s ease;
+}
+.cat-btn .cat-emoji { font-size: 19px; }
+.cat-btn.active {
+  border-color: var(--terracotta);
+  background: var(--terracotta-soft);
+  color: var(--terracotta-dark);
+  font-weight: 700;
+}
+
+.cat-btn.cat-add {
+  border-style: dashed;
+  color: var(--brown);
+  opacity: 0.75;
+}
+.cat-btn.cat-add:hover { opacity: 1; border-color: var(--terracotta); }
+
+.cat-remove {
+  display: none;
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--terracotta-dark);
+  color: var(--paper);
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+}
+.category-grid.editing .cat-btn:not(.cat-add) {
+  border-color: var(--terracotta-dark);
+}
+.category-grid.editing .cat-btn:not(.cat-add) .cat-remove { display: flex; }
+.category-grid.editing .cat-btn.cat-add { opacity: 0.35; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+.btn-secondary, .btn-primary {
+  flex: 1;
+  border: none;
+  border-radius: 13px;
+  padding: 13px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14.5px;
+  cursor: pointer;
+}
+.btn-secondary {
+  background: var(--cream-dark);
+  color: var(--brown-deep);
+}
+.btn-primary {
+  background: var(--terracotta);
+  color: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 380px) {
+  .summary { grid-template-columns: 1fr; }
+  .jar-card { grid-row: auto; }
+}
