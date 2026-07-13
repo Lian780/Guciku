@@ -447,10 +447,39 @@ h1, h2 { font-family: "Fraunces", serif; margin: 0; }
 
 .add-category-form {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 8px;
 }
 .add-category-form[hidden] { display: none; }
+
+.emoji-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.emoji-pick-btn {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.emoji-pick-btn.active {
+  border-color: var(--terracotta);
+  background: var(--terracotta-soft);
+}
+
+.add-category-row {
+  display: flex;
+  gap: 6px;
+}
 .emoji-input {
   width: 46px;
   flex-shrink: 0;
