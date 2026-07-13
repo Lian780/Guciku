@@ -342,6 +342,7 @@ function renderCategoryGrid() {
   addBtn.className = "cat-btn cat-add";
   addBtn.innerHTML = `<span class="cat-emoji">＋</span><span>Tambah</span>`;
   addBtn.addEventListener("click", () => {
+    resetEmojiPicker();
     document.getElementById("addCategoryForm").hidden = false;
     document.getElementById("newCatName").focus();
   });
@@ -350,12 +351,12 @@ function renderCategoryGrid() {
   document.getElementById("manageCatBtn").textContent = manageMode ? "Selesai" : "Kelola";
 }
 
-function addCategory(type, label) {
+function addCategory(type, label, emoji) {
   const cleanLabel = label.trim();
   if (!cleanLabel) return;
   const id = cleanLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "kategori-" + Date.now();
   const finalId = categoriesByType[type].some((c) => c.id === id) ? id + "-" + Date.now() : id;
-  categoriesByType[type].push({ id: finalId, label: cleanLabel, emoji: "🏷️" });
+  categoriesByType[type].push({ id: finalId, label: cleanLabel, emoji: emoji || "🏷️" });
   saveCategories();
   currentCategory = finalId;
   renderCategoryGrid();
@@ -457,15 +458,33 @@ document.getElementById("manageCatBtn").addEventListener("click", () => {
   renderCategoryGrid();
 });
 
+let pendingCatEmoji = "🏷️";
+
+function resetEmojiPicker() {
+  pendingCatEmoji = "🏷️";
+  document.querySelectorAll(".emoji-pick-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.emoji === pendingCatEmoji);
+  });
+}
+
+document.getElementById("emojiPicker").addEventListener("click", (e) => {
+  const btn = e.target.closest(".emoji-pick-btn");
+  if (!btn) return;
+  pendingCatEmoji = btn.dataset.emoji;
+  document.querySelectorAll(".emoji-pick-btn").forEach((b) => b.classList.toggle("active", b === btn));
+});
+
 document.getElementById("confirmAddCat").addEventListener("click", () => {
   const name = document.getElementById("newCatName").value;
-  addCategory(currentType, name);
+  addCategory(currentType, name, pendingCatEmoji);
   document.getElementById("newCatName").value = "";
+  resetEmojiPicker();
   document.getElementById("addCategoryForm").hidden = true;
 });
 
 document.getElementById("cancelAddCat").addEventListener("click", () => {
   document.getElementById("newCatName").value = "";
+  resetEmojiPicker();
   document.getElementById("addCategoryForm").hidden = true;
 });
 
