@@ -433,6 +433,11 @@ h1, h2 { font-family: "Fraunces", serif; margin: 0; }
   margin-bottom: 7px;
 }
 .field-label-row span { margin-bottom: 0; }
+.field-label-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .manage-link {
   background: none;
   border: none;
