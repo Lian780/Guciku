@@ -31,6 +31,7 @@ let currentType = "keluar";
 let currentCategory = categoriesByType.keluar[0].id;
 let currentFilter = "semua";
 let manageMode = false;
+let restoreMode = false;
 
 // ---------- Storage ----------
 function loadTransactions() {
@@ -362,19 +363,38 @@ function addCategory(type, label, emoji) {
   renderCategoryGrid();
 }
 
-function restoreDefaultCategories(type) {
+function getMissingDefaults(type) {
   const existingIds = new Set(categoriesByType[type].map((c) => c.id));
-  let added = 0;
-  DEFAULT_CATEGORIES[type].forEach((defCat) => {
-    if (!existingIds.has(defCat.id)) {
-      categoriesByType[type].push({ ...defCat });
-      added++;
-    }
-  });
-  if (added > 0) {
-    saveCategories();
-    renderCategoryGrid();
+  return DEFAULT_CATEGORIES[type].filter((d) => !existingIds.has(d.id));
+}
+
+function renderRestoreList() {
+  const box = document.getElementById("restoreList");
+  if (!restoreMode) {
+    box.hidden = true;
+    box.innerHTML = "";
+    return;
   }
+  box.hidden = false;
+  const missing = getMissingDefaults(currentType);
+  if (missing.length === 0) {
+    box.innerHTML = `<p class="restore-empty-note">Semua kategori bawaan sudah ada di sini.</p>`;
+    return;
+  }
+  box.innerHTML = "";
+  missing.forEach((cat) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "restore-chip";
+    chip.innerHTML = `<span class="plus-badge">+</span><span class="cat-emoji">${cat.emoji}</span><span>${escapeHtml(cat.label)}</span>`;
+    chip.addEventListener("click", () => {
+      categoriesByType[currentType].push({ ...cat });
+      saveCategories();
+      renderCategoryGrid();
+      renderRestoreList();
+    });
+    box.appendChild(chip);
+  });
 }
 
 function removeCategory(type, id) {
@@ -431,9 +451,12 @@ function openSheet() {
   currentType = "keluar";
   currentCategory = categoriesByType.keluar[0].id;
   manageMode = false;
+  restoreMode = false;
+  document.getElementById("restoreCatBtn").textContent = "Pulihkan bawaan";
   document.getElementById("addCategoryForm").hidden = true;
   updateTypeToggleUI();
   renderCategoryGrid();
+  renderRestoreList();
   overlay.classList.add("open");
   setTimeout(() => amountInput.focus(), 250);
 }
@@ -461,20 +484,31 @@ document.getElementById("typeToggle").addEventListener("click", (e) => {
   currentType = btn.dataset.type;
   currentCategory = categoriesByType[currentType][0].id;
   manageMode = false;
+  restoreMode = false;
+  document.getElementById("restoreCatBtn").textContent = "Pulihkan bawaan";
   document.getElementById("addCategoryForm").hidden = true;
   updateTypeToggleUI();
   renderCategoryGrid();
+  renderRestoreList();
 });
 
 // ---------- Kelola kategori (tambah/hapus) ----------
 document.getElementById("restoreCatBtn").addEventListener("click", () => {
-  restoreDefaultCategories(currentType);
+  restoreMode = !restoreMode;
+  manageMode = false;
+  document.getElementById("addCategoryForm").hidden = true;
+  document.getElementById("restoreCatBtn").textContent = restoreMode ? "Selesai" : "Pulihkan bawaan";
+  renderCategoryGrid();
+  renderRestoreList();
 });
 
 document.getElementById("manageCatBtn").addEventListener("click", () => {
   manageMode = !manageMode;
+  restoreMode = false;
+  document.getElementById("restoreCatBtn").textContent = "Pulihkan bawaan";
   document.getElementById("addCategoryForm").hidden = true;
   renderCategoryGrid();
+  renderRestoreList();
 });
 
 let pendingCatEmoji = "🏷️";
