@@ -131,9 +131,21 @@
         </div>
         <div class="category-grid" id="categoryGrid"></div>
         <div class="add-category-form" id="addCategoryForm" hidden>
-          <input type="text" id="newCatName" class="name-input" placeholder="Nama kategori baru">
-          <button type="button" class="btn-mini-secondary" id="cancelAddCat">Batal</button>
-          <button type="button" class="btn-mini-primary" id="confirmAddCat">Tambah</button>
+          <div class="emoji-picker" id="emojiPicker">
+            <button type="button" class="emoji-pick-btn active" data-emoji="🏷️">🏷️</button>
+            <button type="button" class="emoji-pick-btn" data-emoji="🛒">🛒</button>
+            <button type="button" class="emoji-pick-btn" data-emoji="🎯">🎯</button>
+            <button type="button" class="emoji-pick-btn" data-emoji="🌿">🌿</button>
+            <button type="button" class="emoji-pick-btn" data-emoji="⭐">⭐</button>
+            <button type="button" class="emoji-pick-btn" data-emoji="💡">💡</button>
+            <button type="button" class="emoji-pick-btn" data-emoji="🎨">🎨</button>
+            <button type="button" class="emoji-pick-btn" data-emoji="📌">📌</button>
+          </div>
+          <div class="add-category-row">
+            <input type="text" id="newCatName" class="name-input" placeholder="Nama kategori baru">
+            <button type="button" class="btn-mini-secondary" id="cancelAddCat">Batal</button>
+            <button type="button" class="btn-mini-primary" id="confirmAddCat">Tambah</button>
+          </div>
         </div>
       </label>
 
