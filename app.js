@@ -23,10 +23,12 @@ const CATEGORIES_KEY = "guciku:categories";
 const BUDGETS_KEY = "guciku:budgets";
 const HIDE_AMOUNTS_KEY = "guciku:hideAmounts";
 const TRASH_KEY = "guciku:categoryTrash";
+const GOALS_KEY = "guciku:savingsGoals";
 
 let transactions = loadTransactions();
 let categoriesByType = loadCategories();
 let categoryTrash = loadTrash();
+let savingsGoals = loadGoals();
 let budgets = loadBudgets();
 let hideAmounts = localStorage.getItem(HIDE_AMOUNTS_KEY) === "1";
 let currentType = "keluar";
@@ -119,6 +121,24 @@ function saveBudgets() {
     localStorage.setItem(BUDGETS_KEY, JSON.stringify(budgets));
   } catch (e) {
     console.error("Gagal menyimpan anggaran Guciku:", e);
+  }
+}
+
+function loadGoals() {
+  try {
+    const raw = localStorage.getItem(GOALS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error("Gagal membaca target nabung Guciku:", e);
+    return [];
+  }
+}
+
+function saveGoals() {
+  try {
+    localStorage.setItem(GOALS_KEY, JSON.stringify(savingsGoals));
+  } catch (e) {
+    console.error("Gagal menyimpan target nabung Guciku:", e);
   }
 }
 
@@ -273,6 +293,8 @@ function escapeHtml(str) {
 function renderAll() {
   renderSummary();
   renderBudgets();
+  renderGoals();
+  renderChart();
   renderHistory();
 }
 
@@ -336,6 +358,116 @@ function renderBudgets() {
       `;
     }
     listEl.appendChild(card);
+  });
+}
+
+// ---------- Target Nabung ----------
+function renderGoals() {
+  const listEl = document.getElementById("goalsList");
+  const emptyEl = document.getElementById("goalsEmpty");
+  listEl.innerHTML = "";
+
+  if (savingsGoals.length === 0) {
+    emptyEl.style.display = "flex";
+    listEl.style.display = "none";
+    return;
+  }
+  emptyEl.style.display = "none";
+  listEl.style.display = "flex";
+
+  savingsGoals.forEach((goal) => {
+    const ratio = Math.min(1, goal.saved / goal.target);
+    const done = goal.saved >= goal.target;
+
+    const card = document.createElement("div");
+    card.className = "goal-card" + (done ? " goal-done" : "");
+    card.innerHTML = `
+      <div class="goal-card-head">
+        <div class="goal-card-name"><span class="cat-emoji">${goal.emoji}</span>${escapeHtml(goal.name)}</div>
+        <button type="button" class="goal-delete" data-id="${goal.id}" title="Hapus target">✕</button>
+      </div>
+      <div class="goal-card-figures"><strong>${displayAmount(goal.saved)}</strong> / ${displayAmount(goal.target)}</div>
+      <div class="goal-bar-track"><div class="goal-bar-fill" style="width:${ratio * 100}%"></div></div>
+      ${done
+        ? `<span class="goal-done-badge">🌱 Target tercapai</span>`
+        : `<div class="goal-deposit-row">
+             <div class="amount-input">
+               <span class="prefix">Rp</span>
+               <input type="text" inputmode="numeric" class="goal-deposit-input" placeholder="Nabung berapa?">
+             </div>
+             <button type="button" class="btn-mini-primary goal-deposit-btn" data-id="${goal.id}">Nabung</button>
+           </div>`
+      }
+    `;
+    listEl.appendChild(card);
+  });
+
+  listEl.querySelectorAll(".goal-delete").forEach((btn) => {
+    btn.addEventListener("click", () => deleteGoal(btn.dataset.id));
+  });
+  listEl.querySelectorAll(".goal-deposit-input").forEach((input) => {
+    input.addEventListener("input", () => {
+      const digits = input.value.replace(/\D/g, "");
+      input.value = digits ? Number(digits).toLocaleString("id-ID") : "";
+    });
+  });
+  listEl.querySelectorAll(".goal-deposit-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = btn.parentElement.querySelector(".goal-deposit-input");
+      const amount = Number(input.value.replace(/\D/g, ""));
+      if (!amount || amount <= 0) return;
+      depositToGoal(btn.dataset.id, amount);
+    });
+  });
+}
+
+function depositToGoal(id, amount) {
+  const goal = savingsGoals.find((g) => g.id === id);
+  if (!goal) return;
+  goal.saved += amount;
+  saveGoals();
+  renderGoals();
+}
+
+function deleteGoal(id) {
+  const goal = savingsGoals.find((g) => g.id === id);
+  if (!confirm(`Hapus target "${goal ? goal.name : ""}"? Catatan nabungnya akan hilang.`)) return;
+  savingsGoals = savingsGoals.filter((g) => g.id !== id);
+  saveGoals();
+  renderGoals();
+}
+
+// ---------- Grafik sederhana ----------
+const CHART_COLORS = ["var(--terracotta)", "var(--sage-dark)", "var(--warn)", "var(--brown)", "var(--terracotta-dark)", "var(--sage)"];
+
+function renderChart() {
+  const section = document.getElementById("chartSection");
+  const listEl = document.getElementById("chartList");
+  const spent = computeSpentThisMonthByCategory();
+
+  const rows = categoriesByType.keluar
+    .map((cat) => ({ cat, amount: spent[cat.id] || 0 }))
+    .filter((r) => r.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+
+  if (rows.length === 0) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+
+  const max = rows[0].amount;
+  listEl.innerHTML = "";
+  rows.forEach((row, i) => {
+    const ratio = row.amount / max;
+    const rowEl = document.createElement("div");
+    rowEl.className = "chart-row";
+    rowEl.innerHTML = `
+      <div class="chart-row-label"><span class="cat-emoji">${row.cat.emoji}</span>${escapeHtml(row.cat.label)}</div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${ratio * 100}%; background:${CHART_COLORS[i % CHART_COLORS.length]}"></div></div>
+      <div class="chart-row-amount">${displayAmount(row.amount)}</div>
+    `;
+    listEl.appendChild(rowEl);
   });
 }
 
@@ -687,6 +819,69 @@ document.getElementById("toggleAmountsBtn").addEventListener("click", () => {
   localStorage.setItem(HIDE_AMOUNTS_KEY, hideAmounts ? "1" : "0");
   updateVisibilityToggleUI();
   renderAll();
+});
+
+// ---------- Sheet target nabung baru ----------
+const goalOverlay = document.getElementById("goalOverlay");
+const goalForm = document.getElementById("goalForm");
+const goalNameInput = document.getElementById("goalNameInput");
+const goalTargetInput = document.getElementById("goalTargetInput");
+let pendingGoalEmoji = "🎯";
+
+function resetGoalForm() {
+  goalNameInput.value = "";
+  goalTargetInput.value = "";
+  pendingGoalEmoji = "🎯";
+  document.querySelectorAll("#goalEmojiPicker .emoji-pick-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.emoji === pendingGoalEmoji);
+  });
+}
+
+function openGoalSheet() {
+  resetGoalForm();
+  goalOverlay.classList.add("open");
+  setTimeout(() => goalNameInput.focus(), 250);
+}
+
+function closeGoalSheet() {
+  goalOverlay.classList.remove("open");
+}
+
+document.getElementById("openGoalFormBtn").addEventListener("click", openGoalSheet);
+document.getElementById("cancelGoalBtn").addEventListener("click", closeGoalSheet);
+goalOverlay.addEventListener("click", (e) => {
+  if (e.target === goalOverlay) closeGoalSheet();
+});
+
+document.getElementById("goalEmojiPicker").addEventListener("click", (e) => {
+  const btn = e.target.closest(".emoji-pick-btn");
+  if (!btn) return;
+  pendingGoalEmoji = btn.dataset.emoji;
+  document.querySelectorAll("#goalEmojiPicker .emoji-pick-btn").forEach((b) => b.classList.toggle("active", b === btn));
+});
+
+goalTargetInput.addEventListener("input", () => {
+  const digits = goalTargetInput.value.replace(/\D/g, "");
+  goalTargetInput.value = digits ? Number(digits).toLocaleString("id-ID") : "";
+});
+
+goalForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = goalNameInput.value.trim();
+  const target = Number(goalTargetInput.value.replace(/\D/g, ""));
+  if (!name || !target || target <= 0) return;
+
+  savingsGoals.push({
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    name,
+    emoji: pendingGoalEmoji,
+    target,
+    saved: 0,
+    createdAt: Date.now(),
+  });
+  saveGoals();
+  renderGoals();
+  closeGoalSheet();
 });
 
 // ---------- Init ----------
