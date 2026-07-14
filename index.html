@@ -71,6 +71,24 @@
     </div>
   </section>
 
+  <section class="goals-section" aria-label="Target nabung">
+    <div class="history-head">
+      <h2>Target Nabung</h2>
+      <button type="button" class="manage-link" id="openGoalFormBtn">+ Target</button>
+    </div>
+    <div id="goalsList" class="goals-list"></div>
+    <div id="goalsEmpty" class="empty-state goals-empty">
+      <p>Belum ada target nabung.<br>Catatan ini terpisah dari saldo utama, biar simpel.</p>
+    </div>
+  </section>
+
+  <section class="chart-section" id="chartSection" aria-label="Pengeluaran per kategori bulan ini" hidden>
+    <div class="history-head">
+      <h2>Pengeluaran Bulan Ini</h2>
+    </div>
+    <div id="chartList" class="chart-list"></div>
+  </section>
+
   <section class="history">
     <div class="history-head">
       <h2>Riwayat</h2>
@@ -165,6 +183,46 @@
       <button type="button" class="btn-secondary" id="cancelBudgetBtn">Batal</button>
       <button type="button" class="btn-primary" id="saveBudgetBtn">Simpan Anggaran</button>
     </div>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="goalOverlay">
+  <div class="sheet" role="dialog" aria-label="Buat target nabung">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <h2>Target Nabung Baru</h2>
+      <p class="sheet-subtitle">Catatan nabung ini terpisah dari saldo utama, biar simpel.</p>
+    </div>
+    <form id="goalForm">
+      <label class="field">
+        <span>Nama target</span>
+        <input type="text" id="goalNameInput" placeholder="Misalnya: Liburan, Dana Darurat" required>
+      </label>
+      <label class="field">
+        <span>Emoji</span>
+        <div class="emoji-picker" id="goalEmojiPicker">
+          <button type="button" class="emoji-pick-btn active" data-emoji="🎯">🎯</button>
+          <button type="button" class="emoji-pick-btn" data-emoji="🏖️">🏖️</button>
+          <button type="button" class="emoji-pick-btn" data-emoji="🏠">🏠</button>
+          <button type="button" class="emoji-pick-btn" data-emoji="🚗">🚗</button>
+          <button type="button" class="emoji-pick-btn" data-emoji="💻">💻</button>
+          <button type="button" class="emoji-pick-btn" data-emoji="🎓">🎓</button>
+          <button type="button" class="emoji-pick-btn" data-emoji="💍">💍</button>
+          <button type="button" class="emoji-pick-btn" data-emoji="🩺">🩺</button>
+        </div>
+      </label>
+      <label class="field">
+        <span>Target jumlah</span>
+        <div class="amount-input">
+          <span class="prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="goalTargetInput" placeholder="0" required>
+        </div>
+      </label>
+      <div class="sheet-actions">
+        <button type="button" class="btn-secondary" id="cancelGoalBtn">Batal</button>
+        <button type="submit" class="btn-primary">Buat Target</button>
+      </div>
+    </form>
   </div>
 </div>
 
