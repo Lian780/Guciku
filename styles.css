@@ -401,6 +401,13 @@ h1, h2 { font-family: "Fraunces", serif; margin: 0; }
   width: 82px;
   text-align: right;
 }
+.chart-collapsed-note {
+  font-size: 12.5px;
+  color: var(--brown);
+  opacity: 0.7;
+  margin: 4px 0 0;
+}
+.chart-collapsed-note[hidden] { display: none; }
 
 /* History */
 .history-head {
