@@ -409,29 +409,27 @@ function renderRestoreList() {
     return;
   }
   box.hidden = false;
-  box.innerHTML = `
-    <div class="restore-label-row">
-      <p class="restore-label">Kategori yang pernah dihapus:</p>
-      <button type="button" class="restore-clear-btn" id="clearTrashBtn">Kosongkan</button>
-    </div>
-  `;
-  document.getElementById("clearTrashBtn").addEventListener("click", () => {
-    if (!confirm("Kosongkan daftar kategori yang pernah dihapus? Kategori yang sedang aktif tidak akan terpengaruh.")) return;
-    categoryTrash[currentType] = [];
-    saveTrash();
-    renderRestoreList();
-  });
+  box.innerHTML = `<p class="restore-label">Kategori yang pernah dihapus:</p>`;
   trashed.forEach((cat) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
+    const chip = document.createElement("div");
     chip.className = "restore-chip";
-    chip.innerHTML = `<span class="plus-badge">+</span><span class="cat-emoji">${cat.emoji}</span><span>${escapeHtml(cat.label)}</span>`;
-    chip.addEventListener("click", () => {
+    chip.innerHTML = `
+      <button type="button" class="restore-add">
+        <span class="plus-badge">+</span><span class="cat-emoji">${cat.emoji}</span><span>${escapeHtml(cat.label)}</span>
+      </button>
+      <button type="button" class="restore-forget" title="Buang dari daftar ini (tidak bisa dipulihkan lagi)">✕</button>
+    `;
+    chip.querySelector(".restore-add").addEventListener("click", () => {
       categoriesByType[currentType].push({ ...cat });
       saveCategories();
       categoryTrash[currentType] = categoryTrash[currentType].filter((c) => c.id !== cat.id);
       saveTrash();
       renderCategoryGrid();
+      renderRestoreList();
+    });
+    chip.querySelector(".restore-forget").addEventListener("click", () => {
+      categoryTrash[currentType] = categoryTrash[currentType].filter((c) => c.id !== cat.id);
+      saveTrash();
       renderRestoreList();
     });
     box.appendChild(chip);
