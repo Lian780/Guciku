@@ -193,17 +193,7 @@ function renderSummary() {
     jarNote.hidden = true;
   }
 
-  // Isi jar: proporsi saldo terhadap total pemasukan (kapasitas jar)
-  const capacity = Math.max(masuk, saldo, 1);
-  const ratio = Math.max(0, Math.min(1, saldo / capacity));
-  const jarTop = 6, jarBottom = 147; // koordinat outline jar di SVG
-  const fillHeight = (jarBottom - jarTop) * ratio;
-  const fillY = jarBottom - fillHeight;
-
-  const fillEl = document.getElementById("jarFill");
-  fillEl.setAttribute("y", fillY);
-  fillEl.setAttribute("height", fillHeight + 20);
-  fillEl.setAttribute("fill", saldo < 0 ? "var(--warn)" : "var(--sage)");
+  document.getElementById("jarCard").classList.toggle("state-low", saldo < 0);
 }
 
 function renderHistory() {
@@ -325,15 +315,26 @@ function renderBudgets() {
     }
 
     const card = document.createElement("div");
-    card.className = "budget-card state-" + state;
-    card.innerHTML = `
-      <div class="budget-card-head">
-        <div class="budget-card-name"><span class="cat-emoji">${cat.emoji}</span>${escapeHtml(cat.label)}</div>
-        <div class="budget-card-figures"><strong>${displayAmount(used)}</strong> / ${displayAmount(limit)}</div>
-      </div>
-      <div class="budget-bar-track"><div class="budget-bar-fill" style="width:${ratio * 100}%"></div></div>
-      ${note ? `<p class="budget-note">${note}</p>` : ""}
-    `;
+
+    if (state === "ok") {
+      card.className = "budget-card compact state-ok";
+      card.innerHTML = `
+        <span class="budget-compact-emoji">${cat.emoji}</span>
+        <span class="budget-compact-label">${escapeHtml(cat.label)}</span>
+        <div class="budget-bar-track"><div class="budget-bar-fill" style="width:${ratio * 100}%"></div></div>
+        <span class="budget-compact-figures">${displayAmount(used)} / ${displayAmount(limit)}</span>
+      `;
+    } else {
+      card.className = "budget-card state-" + state;
+      card.innerHTML = `
+        <div class="budget-card-head">
+          <div class="budget-card-name"><span class="cat-emoji">${cat.emoji}</span>${escapeHtml(cat.label)}</div>
+          <div class="budget-card-figures"><strong>${displayAmount(used)}</strong> / ${displayAmount(limit)}</div>
+        </div>
+        <div class="budget-bar-track"><div class="budget-bar-fill" style="width:${ratio * 100}%"></div></div>
+        ${note ? `<p class="budget-note">${note}</p>` : ""}
+      `;
+    }
     listEl.appendChild(card);
   });
 }
@@ -408,7 +409,18 @@ function renderRestoreList() {
     return;
   }
   box.hidden = false;
-  box.innerHTML = `<p class="restore-label">Kategori yang pernah dihapus:</p>`;
+  box.innerHTML = `
+    <div class="restore-label-row">
+      <p class="restore-label">Kategori yang pernah dihapus:</p>
+      <button type="button" class="restore-clear-btn" id="clearTrashBtn">Kosongkan</button>
+    </div>
+  `;
+  document.getElementById("clearTrashBtn").addEventListener("click", () => {
+    if (!confirm("Kosongkan daftar kategori yang pernah dihapus? Kategori yang sedang aktif tidak akan terpengaruh.")) return;
+    categoryTrash[currentType] = [];
+    saveTrash();
+    renderRestoreList();
+  });
   trashed.forEach((cat) => {
     const chip = document.createElement("button");
     chip.type = "button";
