@@ -352,9 +352,10 @@ h1, h2 { font-family: "Fraunces", serif; margin: 0; }
   color: var(--sage-dark);
 }
 
-.goal-deposit-row { display: flex; gap: 8px; }
-.goal-deposit-row .amount-input { flex: 1; padding: 0 10px; }
-.goal-deposit-row .amount-input input { font-size: 14px !important; padding: 9px 6px !important; }
+.goal-deposit-row { display: flex; flex-wrap: nowrap; gap: 8px; }
+.goal-deposit-row .amount-input { flex: 1; min-width: 0; padding: 0 10px; }
+.goal-deposit-row .amount-input input { font-size: 14px !important; padding: 9px 6px !important; min-width: 0; }
+.goal-deposit-btn { flex-shrink: 0; padding: 8px 14px !important; }
 
 .goals-empty { display: none; padding: 26px 20px; }
 .goals-empty p { margin: 0; font-size: 13px; line-height: 1.6; }
