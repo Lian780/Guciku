@@ -283,6 +283,124 @@ h1, h2 { font-family: "Fraunces", serif; margin: 0; }
 .budget-row .amount-input { flex: 1; padding: 0 10px; }
 .budget-row .amount-input input { font-size: 14px !important; padding: 9px 6px !important; }
 
+/* Target Nabung */
+.goals-section { margin-bottom: 30px; }
+.goals-list { display: flex; flex-direction: column; gap: 10px; }
+
+.goal-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 15px;
+}
+.goal-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.goal-card-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--brown-deep);
+}
+.goal-card-name .cat-emoji { font-size: 16px; }
+.goal-delete {
+  background: none;
+  border: none;
+  color: var(--brown);
+  opacity: 0.4;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+}
+.goal-delete:hover { opacity: 1; color: var(--terracotta-dark); }
+
+.goal-card-figures {
+  font-size: 12.5px;
+  color: var(--brown);
+  margin: 8px 0 10px;
+}
+.goal-card-figures strong { color: var(--sage-dark); }
+.goal-card.goal-done .goal-card-figures strong { color: var(--sage-dark); }
+
+.goal-bar-track {
+  height: 8px;
+  background: var(--cream-dark);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.goal-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--sage);
+  transition: width 0.4s cubic-bezier(.22,1,.36,1);
+}
+
+.goal-done-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sage-dark);
+}
+
+.goal-deposit-row { display: flex; gap: 8px; }
+.goal-deposit-row .amount-input { flex: 1; padding: 0 10px; }
+.goal-deposit-row .amount-input input { font-size: 14px !important; padding: 9px 6px !important; }
+
+.goals-empty { display: none; padding: 26px 20px; }
+.goals-empty p { margin: 0; font-size: 13px; line-height: 1.6; }
+
+/* Grafik sederhana */
+.chart-section { margin-bottom: 30px; }
+.chart-list { display: flex; flex-direction: column; gap: 10px; }
+.chart-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.chart-row-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 92px;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brown-deep);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chart-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--cream-dark);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.chart-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(.22,1,.36,1);
+}
+.chart-row-amount {
+  font-size: 12px;
+  color: var(--brown);
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: 82px;
+  text-align: right;
+}
+
 /* History */
 .history-head {
   display: flex;
