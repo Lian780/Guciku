@@ -393,7 +393,7 @@ function renderGoals() {
         : `<div class="goal-deposit-row">
              <div class="amount-input">
                <span class="prefix">Rp</span>
-               <input type="text" inputmode="numeric" class="goal-deposit-input" placeholder="Nabung berapa?">
+               <input type="text" inputmode="numeric" class="goal-deposit-input" placeholder="0">
              </div>
              <button type="button" class="btn-mini-primary goal-deposit-btn" data-id="${goal.id}">Nabung</button>
            </div>`
