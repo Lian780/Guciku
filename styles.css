@@ -603,47 +603,51 @@ h1, h2 { font-family: "Fraunces", serif; margin: 0; }
 .restore-list[hidden] { display: none; }
 .restore-chip {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: stretch;
   border: 1.5px dashed var(--line);
   background: var(--paper);
   border-radius: 12px;
-  padding: 8px 11px;
+  overflow: hidden;
+}
+.restore-chip:hover { border-color: var(--sage-dark); }
+.restore-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 8px 10px;
   font-family: inherit;
   font-size: 12.5px;
   color: var(--brown);
   cursor: pointer;
 }
-.restore-chip:hover { border-color: var(--sage-dark); background: var(--sage-soft); color: var(--sage-dark); }
-.restore-chip .plus-badge { font-weight: 700; color: var(--sage-dark); }
-.restore-label-row {
-  width: 100%;
+.restore-add:hover { background: var(--sage-soft); color: var(--sage-dark); }
+.restore-add .plus-badge { font-weight: 700; color: var(--sage-dark); }
+.restore-forget {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin: 4px 0 0;
+  justify-content: center;
+  width: 26px;
+  border: none;
+  border-left: 1.5px dashed var(--line);
+  background: none;
+  font-size: 11px;
+  color: var(--brown);
+  opacity: 0.5;
+  cursor: pointer;
 }
+.restore-forget:hover { opacity: 1; color: var(--terracotta-dark); background: var(--terracotta-soft); }
 .restore-label {
+  width: 100%;
   font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--brown);
   opacity: 0.65;
-  margin: 0;
+  margin: 4px 0 0;
 }
-.restore-clear-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--brown);
-  opacity: 0.6;
-  cursor: pointer;
-}
-.restore-clear-btn:hover { opacity: 1; color: var(--terracotta-dark); }
 .cat-btn {
   position: relative;
   display: flex;
