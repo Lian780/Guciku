@@ -22,6 +22,7 @@ const STORAGE_KEY = "guciku:transactions";
 const CATEGORIES_KEY = "guciku:categories";
 const BUDGETS_KEY = "guciku:budgets";
 const HIDE_AMOUNTS_KEY = "guciku:hideAmounts";
+const HIDE_CHART_KEY = "guciku:hideChart";
 const TRASH_KEY = "guciku:categoryTrash";
 const GOALS_KEY = "guciku:savingsGoals";
 
@@ -31,6 +32,7 @@ let categoryTrash = loadTrash();
 let savingsGoals = loadGoals();
 let budgets = loadBudgets();
 let hideAmounts = localStorage.getItem(HIDE_AMOUNTS_KEY) === "1";
+let chartHidden = localStorage.getItem(HIDE_CHART_KEY) === "1";
 let currentType = "keluar";
 let currentCategory = categoriesByType.keluar[0].id;
 let currentFilter = "semua";
@@ -443,6 +445,8 @@ const CHART_COLORS = ["var(--terracotta)", "var(--sage-dark)", "var(--warn)", "v
 function renderChart() {
   const section = document.getElementById("chartSection");
   const listEl = document.getElementById("chartList");
+  const toggleBtn = document.getElementById("toggleChartBtn");
+  const collapsedNote = document.getElementById("chartCollapsedNote");
   const spent = computeSpentThisMonthByCategory();
 
   const rows = categoriesByType.keluar
@@ -455,6 +459,15 @@ function renderChart() {
     return;
   }
   section.hidden = false;
+  toggleBtn.textContent = chartHidden ? "Tampilkan" : "Sembunyikan";
+
+  if (chartHidden) {
+    listEl.hidden = true;
+    collapsedNote.hidden = false;
+    return;
+  }
+  listEl.hidden = false;
+  collapsedNote.hidden = true;
 
   const max = rows[0].amount;
   listEl.innerHTML = "";
@@ -819,6 +832,12 @@ document.getElementById("toggleAmountsBtn").addEventListener("click", () => {
   localStorage.setItem(HIDE_AMOUNTS_KEY, hideAmounts ? "1" : "0");
   updateVisibilityToggleUI();
   renderAll();
+});
+
+document.getElementById("toggleChartBtn").addEventListener("click", () => {
+  chartHidden = !chartHidden;
+  localStorage.setItem(HIDE_CHART_KEY, chartHidden ? "1" : "0");
+  renderChart();
 });
 
 // ---------- Sheet target nabung baru ----------
